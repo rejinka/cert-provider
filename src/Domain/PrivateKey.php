@@ -13,6 +13,11 @@ final class PrivateKey
         return new self(base64_decode($value));
     }
 
+    public static function dummy(string $data): self
+    {
+        return new self(self::HEADER . "\n" . $data . "\n" . self::FOOTER . "\n");
+    }
+
     public function toString(): string
     {
         return $this->value;
