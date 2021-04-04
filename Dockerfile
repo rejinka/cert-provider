@@ -20,6 +20,18 @@ COPY --from=composer /usr/bin/composer /usr/local/bin/composer
 RUN composer global require "vimeo/psalm:4.7.0"
 
 
+##########
+# php-ci #
+##########
+FROM php-base as php-ci
+
+COPY --from=composer /usr/bin/composer /usr/local/bin/composer
+COPY --from=psalm /root/.composer /opt/composer
+COPY composer.* ./
+RUN composer install --no-scripts
+COPY . ./
+
+
 ###########
 # php-dev #
 ###########

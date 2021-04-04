@@ -1,0 +1,47 @@
+name: CI
+
+on:
+    - push
+    - pull_request
+
+jobs:
+    psalm:
+        name: Static code analysis
+        runs-on: ubuntu-latest
+        steps:
+            -
+                name: Checkout PR
+                uses: actions/checkout@v2
+            -
+                name: Build ci-image
+                uses: docker/build-push-action@v2
+                with:
+                    context: .
+                    tags: ci
+                    target: php-ci
+            -
+                name: Run
+                uses: addnab/docker-run-action@v3
+                with:
+                    image: ci
+                    run: /opt/composer/vendor/bin/psalm
+
+    phpunit:
+        name: Tests
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout PR
+                uses: actions/checkout@v2
+
+            -   name: Build ci-image
+                uses: docker/build-push-action@v2
+                with:
+                    context: .
+                    tags: ci
+                    target: php-ci
+
+            -   name: Run
+                uses: addnab/docker-run-action@v3
+                with:
+                    image: ci
+                    run: vendor/bin/phpunit
