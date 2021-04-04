@@ -87,3 +87,54 @@ EXPOSE 8080
 
 ENTRYPOINT ["/usr/local/bin/docker-php-entrypoint"]
 CMD ["php", "-S", "0.0.0.0:8080", "-t", "public/", "public/index.php"]
+
+
+##########
+# mkacme #
+##########
+FROM alpine:3.13.2 as mkacme
+
+RUN apk add --no-cache curl
+
+ARG STEP_VERSION=0.15.14
+ARG STEP_CA_VERSION=0.15.11
+
+RUN \
+    curl -L https://github.com/smallstep/cli/releases/download/v${STEP_VERSION}/step_linux_${STEP_VERSION}_amd64.tar.gz \
+        | tar xz -C /usr/bin/ --strip=2 step_${STEP_VERSION}/bin/step \
+    && \
+    curl -L https://github.com/smallstep/certificates/releases/download/v${STEP_CA_VERSION}/step-ca_linux_${STEP_CA_VERSION}_amd64.tar.gz \
+        | tar xz -C /usr/bin/ --strip=2 step-ca_${STEP_CA_VERSION}/bin/step-ca \
+    && \
+    chmod +x /usr/bin/step /usr/bin/step-ca
+
+RUN \
+    mkdir -p /root/.step/secrets \
+    && \
+    sh -c "echo 'password' > /root/.step/secrets/password-file" \
+    && \
+    step ca init \
+        --name traefik-cert-provider \
+        --address 127.0.0.1:8443 \
+        --provisioner traefik-cert-provider@example.com \
+        --dns 127.0.0.1 \
+        --password-file /root/.step/secrets/password-file \
+    && \
+    step ca provisioner add letsencrypt --type ACME \
+    && \
+    cp /root/.step/certs/root_ca.crt /usr/local/share/ca-certificates/ \
+    && \
+    update-ca-certificates
+
+ARG TRAEFIK_VERSION
+RUN \
+    curl -L https://github.com/traefik/traefik/releases/download/v${TRAEFIK_VERSION}/traefik_v${TRAEFIK_VERSION}_linux_amd64.tar.gz \
+        | tar xz -C /usr/bin/ traefik \
+    && \
+    chmod +x /usr/bin/traefik
+
+COPY resources/docker/mkacme/entrypoint.sh /
+RUN chmod +rx /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["printacme"]

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+TRAEFIK_VERSION="v$1"
+TAG="cert-provider/tools/mkacme:$1"
+
+docker build --build-arg "TRAEFIK_VERSION=$1" --tag "${TAG}" "${SCRIPT_DIR}/.." 1>&2
+docker run --rm "${TAG}"
