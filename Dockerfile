@@ -10,6 +10,16 @@ FROM ${BASE_IMAGE} as php-base
 WORKDIR /app
 
 
+#########
+# psalm #
+#########
+FROM php-base as psalm
+
+COPY --from=composer /usr/bin/composer /usr/local/bin/composer
+
+RUN composer global require "vimeo/psalm:4.7.0"
+
+
 ###########
 # php-dev #
 ###########
@@ -52,6 +62,8 @@ RUN \
     mkdir -p $COMPOSER_HOME \
     && \
     chown -R ${APP_USER}:${APP_GROUP} $COMPOSER_HOME
+
+COPY --from=psalm /root/.composer /opt/composer
 
 COPY resources/docker/php/php.ini /usr/local/etc/php/
 COPY resources/docker/php/bin/* /usr/local/bin/
