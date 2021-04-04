@@ -32,6 +32,55 @@ RUN composer install --no-scripts
 COPY . ./
 
 
+################
+# prod-builder #
+################
+FROM php-base as prod-builder
+
+COPY --from=composer /usr/bin/composer /usr/local/bin/composer
+COPY composer.* ./
+RUN composer install --no-scripts --no-dev
+COPY . ./
+
+ENV APP_ENV=prod
+ENV APP_DEBUG=0
+RUN \
+    php /app/resources/cache-warmup.php \
+    && \
+    rm -rf \
+        .dockerignore \
+        config/packages/test \
+        config/routes/dev \
+        config/services_test.php \
+        resources \
+        tests \
+        docker-compose* \
+        Dockerfile \
+        phpunit.xml* \
+        psalm.xml \
+        bin \
+    && \
+    composer dump-autoload --optimize --no-dev --no-ansi
+
+
+########
+# prod #
+########
+FROM ${BASE_IMAGE} as prod
+
+WORKDIR /app
+
+COPY --from=prod-builder /app /app
+
+ENV APP_ENV=prod
+ENV APP_DEBUG=0
+ENV TRAEFIK_ACME_JSON_PATH=/acme.json
+
+VOLUME /acme.json
+
+CMD ["php", "-S", "0.0.0.0:80", "-t", "public/", "public/index.php"]
+
+
 ###########
 # php-dev #
 ###########
