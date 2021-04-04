@@ -1,0 +1,19 @@
+#!/bin/sh
+
+auth=""
+if [ "" != "$BITBUCKET_KEY" ] && [ "" != "$BITBUCKET_SECRET" ]; then
+    auth=$auth"\"bitbucket-oauth\": {\"bitbucket.org\": {\"consumer-key\": \"$BITBUCKET_KEY\", \"consumer-secret\": \"$BITBUCKET_SECRET\"}},"
+fi
+
+if [ "" != "$GITHUB_TOKEN" ]; then
+    auth=$auth"\"github-oauth\": {\"github.com\": \"$GITHUB_TOKEN\"},"
+fi
+
+if [ "" != "$auth" ]; then
+    auth=$(echo $auth | sed 's/,$//')
+    export COMPOSER_AUTH=\{$auth\}
+fi
+
+export XDEBUG_MODE=off
+
+_composer "$@"

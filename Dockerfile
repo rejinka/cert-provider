@@ -1,7 +1,10 @@
+ARG BASE_IMAGE=php:8.0.3-cli-alpine3.13
+
+FROM composer:2.0.8 as composer
+
 ############
 # php-base #
 ############
-ARG BASE_IMAGE=php:8.0.3-cli-alpine3.13
 FROM ${BASE_IMAGE} as php-base
 
 WORKDIR /app
@@ -24,6 +27,7 @@ RUN \
 
 ENV APP_USER=app
 ENV APP_GROUP=app
+ENV CACHE_DIR=/usr/local/cache
 
 RUN \
     addgroup -S "$APP_GROUP" \
@@ -32,7 +36,22 @@ RUN \
         -S "$APP_USER" \
         -G "$APP_GROUP" \
     && \
-    apk --no-cache add shadow su-exec
+    apk --no-cache add shadow su-exec \
+    && \
+    mkdir /usr/local/cache \
+    && \
+    chown $APP_USER:$APP_GROUP . /usr/local/cache
+
+# install composer
+ENV COMPOSER_ALLOW_SUPERUSER 1
+ENV COMPOSER_HOME ${CACHE_DIR}/composer
+COPY --from=composer /usr/bin/composer /usr/local/bin/_composer
+RUN \
+    apk --no-cache add git subversion mercurial unzip \
+    && \
+    mkdir -p $COMPOSER_HOME \
+    && \
+    chown -R ${APP_USER}:${APP_GROUP} $COMPOSER_HOME
 
 COPY resources/docker/php/php.ini /usr/local/etc/php/
 COPY resources/docker/php/bin/* /usr/local/bin/
