@@ -15,10 +15,24 @@
         }
     },
     "require": {
-        "justinrainbow/json-schema": "^5.2"
+        "justinrainbow/json-schema": "^5.2",
+        "symfony/framework-bundle": "^5.2"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.5"
+        "phpunit/phpunit": "^9.5",
+        "symfony/browser-kit": "^5.2"
+    },
+    "scripts": {
+        "auto-scripts": [
+            "rm -rf var/cache/*",
+            "php resources/cache-warmup.php"
+        ],
+        "post-install-cmd": [
+            "@auto-scripts"
+        ],
+        "post-update-cmd": [
+            "@auto-scripts"
+        ]
     },
     "config": {
         "optimize-autoloader": true,
@@ -26,5 +40,17 @@
             "*": "dist"
         },
         "sort-packages": true
+    },
+    "extra": {
+        "symfony": {
+            "allow-contrib": false,
+            "require": "5.2.*"
+        }
+    },
+    "replace": {
+        "symfony/polyfill-ctype": "*",
+        "symfony/polyfill-php73": "*",
+        "symfony/polyfill-php80": "*",
+        "symfony/polyfill-mbstring": "*"
     }
 }

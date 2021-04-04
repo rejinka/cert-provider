@@ -4,8 +4,15 @@
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          colors="true"
+         bootstrap="config/bootstrap.php"
          cacheResultFile="var/phpunit/.phpunit.result.cache"
 >
+
+    <php>
+        <env name="KERNEL_CLASS" value="App\Infrastructure\Symfony\Kernel" />
+        <env name="APP_ENV" value="test" force="true" />
+        <env name="TRAEFIK_ACME_JSON_PATH" value="%kernel.project_dir%/tests/Integration/Fixtures/acme.json" force="true" />
+    </php>
 
     <testsuites>
         <testsuite name="Project Test Suite">
