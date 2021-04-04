@@ -1,0 +1,29 @@
+#!/bin/sh
+
+set -e
+
+function manage_user {
+    if [ "" != "${PUID}" ]; then
+        usermod -o -u "${PUID}" "${APP_USER}"
+    fi
+
+    if [ "" != "${PGID}" ]; then
+        groupmod -o -g "${PGID}" ${APP_GROUP}
+    fi
+
+    chown -R "${APP_USER}:${APP_GROUP}" $CACHE_DIR
+}
+
+if [ 0 -ne $(id -u) ]; then
+    echo "Container needs to start as root. It will drop privileges after a small bootstrap."
+    exit 1
+fi
+
+manage_user
+
+# first arg is `-f` or `--some-option`
+if [ "${1#-}" != "$1" ]; then
+	set -- php "$@"
+fi
+
+su-exec "${APP_USER}" "$@"

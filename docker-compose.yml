@@ -1,0 +1,16 @@
+version: "3.6"
+
+services:
+    php:
+        build:
+            context: .
+            target: php-dev
+        volumes:
+            - .:/app
+            - composer:/usr/local/cache/composer
+        env_file:
+            - .env
+            - .env.local
+
+volumes:
+    composer: ~
